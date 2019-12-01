@@ -1,0 +1,77 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+	<title>Index</title>
+	<style>
+		body{
+	        background-color: rgb(14, 133, 212);
+        }
+
+		#name{
+			position: relative;
+            margin: 50px auto;
+            left: 380px;
+		}
+		#single{
+			position: relative;
+            top:70px;
+            left: 100px;
+			width: 200px;
+			height: 170px;
+			background-color: coral;
+			
+		}
+		
+
+		#multi{
+
+			position: relative;
+            
+            left: 700px;
+			bottom: 120px;
+			width: 200px;
+			height: 170px;
+			background-color: coral;
+		}
+
+		#regras{
+			position: relative;
+            
+            left: 450px;
+		}
+	
+	</style>
+</head>
+<body>
+
+	<div id="name">
+		<h1>Jogo da Memória</h1>
+	</div>
+
+	<div id="single">
+
+		<h1>Single Player</h1>
+		<form action="/jogoSingle" method="get">
+		
+			<button type="submit" >Jogar</button>
+		</form>
+
+	</div>
+
+	<div id="multi">
+		<h1>Multi Player</h1>
+
+		<form action="/jogo" method="get">
+			Usuário: <input type="text" name="usuario" required></br>
+			<button type="submit" >Jogar</button>
+		</form>
+	</div>	
+	
+	<div id ="regras">
+		<form action="/regras">
+			<button type="submit">Regras</button>
+		</form>
+	</div>
+</body>
+</html>

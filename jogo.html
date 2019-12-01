@@ -1,0 +1,255 @@
+
+<html>
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Jogo da Memória</title>
+	<link rel="stylesheet" type="text/css" href="style.css"/>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+	<div id="tabuleiro">
+		<div class="carta" id="carta0">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta1">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta2">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta3">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta4">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta5">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta6">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta7">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta8">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta9">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta10">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta11">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta12">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta13">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta14"> 
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+		<div class="carta" id="carta15">
+			<div class="face back"></div>
+			<div class="face front"></div>
+		</div>
+
+		
+	</div>
+	<textarea id="output" cols='60' rows='8'></textarea><br>
+	<input type="text" id="msg">
+	<button onclick="send();">enviar</button>
+	</div>
+
+	<script>
+		
+		let game;
+		const socket = io();
+		var cartasViradas = [];
+		let num_player;
+
+		function clickedCard(){
+			//pega as faces da carta clicada
+			var faces = this.getElementsByClassName("face");
+
+			//confere se a carta já está virada, impedindo que a mesma carta seja virada duas vezes
+			if(faces[0].classList[2]){
+				return;
+			}
+
+			socket.emit('sendcard', {player: num_player, idDiv: this.id, idCarta: this.childNodes[3].id});
+		}
+		
+		socket.on('connect', () => {
+		    console.log('> Connected to server');
+		})
+
+		socket.on('disconnect', () => {
+			socket.emit('closing', num_player);
+		    console.log('> Disconnected');
+		})
+
+		socket.on('fail', () => {
+			alert("Falha ao conectar!!!");
+		})
+
+		socket.on('player', (player) => {
+			num_player = player;
+			alert("Voce eh o Player" + num_player);
+		})
+
+		socket.on('acerto', (player_point) => {
+			//em caso de acerto adiciona a classe match a todas as faces das duas cartas presentes no array de cartas viradas
+			document.getElementById(cartasViradas[0]).childNodes[1].classList.toggle("match");
+			document.getElementById(cartasViradas[0]).childNodes[3].classList.toggle("match");
+			document.getElementById(cartasViradas[1]).childNodes[1].classList.toggle("match");
+			document.getElementById(cartasViradas[1]).childNodes[3].classList.toggle("match");
+			
+			cartasViradas = [];
+			
+			//chama a função que exibe a mensagem MATCH
+			alert("Player "+ player_point + " Acertou!!!");
+		})
+
+		socket.on('game-over', (player) => {
+			if (player.Id === 0) {
+				alert("Fim de Jogo!!!\nEmpate com ambos os jogadores com " + player.Pontos + " pontos");
+			}
+			else alert("Fim de Jogo!!!\nO Player " + player.Id + " venceu " + "com " + player.Pontos + " pontos");
+		})
+
+		socket.on('flipcard', (carta) => {
+			var cartaVirada = document.getElementById(carta);
+
+			var faces = cartaVirada.getElementsByClassName("face");
+
+			//adiciona a classe fliped às faces da carta para que sejam viradas
+			faces[0].classList.toggle("flipped");
+			faces[1].classList.toggle("flipped");
+
+			cartasViradas.push(carta);
+		})
+
+		socket.on('unflipcard', () => {
+			var card1 = document.getElementById(cartasViradas[0]);
+			var faces1 = card1.getElementsByClassName("face");
+
+			//adiciona a classe fliped às faces da carta para que sejam viradas
+			faces1[0].classList.toggle("flipped");
+			faces1[1].classList.toggle("flipped");
+
+			var card2 = document.getElementById(cartasViradas[1]);
+			var faces2 = card2.getElementsByClassName("face");
+
+			//adiciona a classe fliped às faces da carta para que sejam viradas
+			faces2[0].classList.toggle("flipped");
+			faces2[1].classList.toggle("flipped");
+
+			cartasViradas = [];
+		})
+		
+		socket.on('bootstrap', (gameInitialState) => {
+            game = gameInitialState;
+			console.log('> Received initial state');
+				
+			//lista de elementos div com as classes front
+			var frontFaces = document.getElementsByClassName("front");
+			var backFaces = document.getElementsByClassName("back");
+
+			//posicionamento das cartas
+			for(var i = 0; i < 16; i++){
+				//limpa as cartas marcadas
+				backFaces[i].classList.remove("match","flipped");
+				frontFaces[i].classList.remove("match","flipped");
+
+				var carta = document.querySelector("#carta" + i);
+				carta.style.left = (i % 8 === 0) ? 5 + "px" : (i % 8) * 165 + 5 + "px";
+				carta.style.top = i < 8 ? 5 + "px" : 250 + "px";
+
+				//adiciona às cartas o evento click chamando a função que vira as cartas
+				carta.addEventListener("click",clickedCard,false);
+
+				//adiciona as imagens e IDs às cartas
+				frontFaces[i].style.background = "url('"+game.images[i].src+"')";
+				frontFaces[i].setAttribute("id",game.images[i].id);
+			}
+
+			//existem 1 carta virada
+			if (game.flippedCards.length === 1) {
+				var card = document.getElementById(game.flippedCards[0]);
+
+				var faces = card.getElementsByClassName("face");
+
+				//adiciona a classe fliped às faces da carta para que sejam viradas
+				faces[0].classList.toggle("flipped");
+				faces[1].classList.toggle("flipped");
+			}
+			else if (game.flippedCards.length === 2) {//existem 2 cartas viradas
+				var card1 = document.getElementById(game.flippedCards[0]);
+				var faces1 = card1.getElementsByClassName("face");
+
+				//adiciona a classe fliped às faces da carta para que sejam viradas
+				faces1[0].classList.toggle("flipped");
+				faces1[1].classList.toggle("flipped");
+
+				var card2 = document.getElementById(game.flippedCards[1]);
+				var faces2 = card2.getElementsByClassName("face");
+
+				//adiciona a classe fliped às faces da carta para que sejam viradas
+				faces2[0].classList.toggle("flipped");
+				faces2[1].classList.toggle("flipped");
+			}
+		})
+
+		var xmlhttp = new XMLHttpRequest();
+			xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
+				document.getElementById("output").value = xmlhttp.responseText;
+		}
+
+
+		function getUsuario() {
+			var parameters = location.search.substring(1).split("&");
+			var temp = parameters[0].split("=");
+			return unescape(temp[1]);
+		}
+
+		function update() {
+			xmlhttp.open("GET","/gettext", true);
+			xmlhttp.send();
+		}
+
+		function send() {
+	
+			var usuario = getUsuario();
+			var msg = document.getElementById('msg').value;
+
+			xmlhttp.open("GET","/sendtext?usuario=" + usuario + "&msg=" + msg, true);
+			xmlhttp.send();
+		}
+
+		setInterval(update, 1000);
+	
+	</script>
+</body>
+</html>
